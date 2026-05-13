@@ -38,9 +38,10 @@ type Session struct {
 
 var SessionNotFound = errors.New("session not found")
 
-func CreateSession(appId string, session Session, ttl time.Duration) (string, error) {
+func CreateSession(appId string, session Session, ttl time.Duration) (Session, error) {
 	session.Created = time.Now().UTC()
 	session.Updated = time.Now().UTC()
+	session.Id = fmt.Sprintf("ses:%s:%s", appId, utils.ULID())
 
 	if session.Status == "" {
 		session.Status = "idle"
@@ -48,18 +49,16 @@ func CreateSession(appId string, session Session, ttl time.Duration) (string, er
 
 	data, err := json.Marshal(session)
 	if err != nil {
-		return "", err
+		return session, err
 	}
 
-	sessionId := fmt.Sprintf("ses:%s:%s", appId, utils.ULID())
-
-	err = db.SetWithTTL(sessionId, data, ttl)
+	err = db.SetWithTTL(session.Id, data, ttl)
 
 	if err != nil {
 		log.Fatalf("Error creating session: %v", err)
 	}
 
-	return sessionId, nil
+	return session, nil
 }
 
 func Delete(sessionId string) error {

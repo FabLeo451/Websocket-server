@@ -51,7 +51,7 @@ func createGuestSession(credentials auth.Credentials, remoteAddr string) (auth.S
 		Ip:         remoteAddr,
 	}
 
-	sessionId, err := auth.CreateSession(thisModule.Id, session, time.Duration(config.TTL_Session())*time.Minute)
+	sessionNew, err := auth.CreateSession(thisModule.Id, session, time.Duration(config.TTL_Session())*time.Minute)
 
 	if err != nil {
 		return session, "", err
@@ -60,7 +60,7 @@ func createGuestSession(credentials auth.Credentials, remoteAddr string) (auth.S
 	// Create token
 
 	claims := auth.CustomClaims{
-		SessionId: sessionId,
+		SessionId: sessionNew.Id,
 		UserId:    user.Id,
 		Email:     credentials.Email,
 		Name:      user.Name,
@@ -71,129 +71,12 @@ func createGuestSession(credentials auth.Credentials, remoteAddr string) (auth.S
 	token, err := auth.GenerateJWT(claims, time.Now().Add(time.Duration(config.TTL_Token())*time.Minute))
 
 	if err != nil {
-		return session, "", err
+		return sessionNew, "", err
 	}
 
-	return session, token, nil
-}
+	utils.Debug("Session created: %s", sessionNew.Id)
 
-func WelcomeHandler(w http.ResponseWriter, r *http.Request) {
-	/*
-		dump, err := httputil.DumpRequest(r, true) // true = include il body
-		if err != nil {
-			fmt.Println("Errore DumpRequest:", err)
-			return
-		}
-
-		fmt.Println("===== HTTP REQUEST DUMP =====")
-		fmt.Println(string(dump))
-		fmt.Println("===== END REQUEST =====")
-	*/
-
-	sessionId := ""
-	token := ""
-	var sess auth.Session
-
-	// Get client info
-
-	var credentials auth.Credentials
-
-	err := json.NewDecoder(r.Body).Decode(&credentials)
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	// Check token
-
-	authHeader := r.Header.Get("Authorization")
-	if strings.HasPrefix(strings.ToLower(authHeader), "bearer ") {
-		token = authHeader[7:]
-	}
-
-	if token == "" {
-		// Create guest session
-		utils.Debug("Client doesn't have a token")
-
-		sess, token, err = createGuestSession(credentials, r.RemoteAddr)
-
-		if err != nil {
-			log.Println(err)
-			http.Error(w, err.Error(), http.StatusUnauthorized)
-			return
-		}
-	} else {
-		// Decode token
-
-		utils.Debug("Decoding token")
-
-		claims, valid, err := auth.DecodeJWT(token)
-
-		if err != nil {
-			utils.Err(err)
-			http.Error(w, err.Error(), http.StatusUnauthorized)
-			return
-		}
-
-		// Get session id
-
-		sessionId, _ = claims["sessionId"].(string)
-
-		// Retrieve session
-
-		sess, err = auth.GetSession(sessionId)
-
-		if err == auth.SessionNotFound {
-			utils.Debug("Session not found")
-			sess, token, err = createGuestSession(credentials, r.RemoteAddr)
-		} else if err != nil {
-			utils.Err(err)
-			http.Error(w, err.Error(), http.StatusUnauthorized)
-			return
-		} else {
-			utils.Debug("Session found. Extending TTL...")
-
-			db.UpdateTTL(sessionId, time.Duration(config.TTL_Session())*time.Minute)
-
-			if !valid {
-				// Regenerate token
-
-				utils.Debug("Regenerating token...")
-
-				newClaims := auth.CustomClaims{
-					SessionId: sessionId,
-					UserId:    sess.User.Id,
-					Email:     credentials.Email,
-					Name:      sess.User.Name,
-					IsUser:    sess.User.IsUSer,
-					IsGuest:   sess.User.IsGuest,
-				}
-
-				token, err = auth.GenerateJWT(newClaims, time.Now().Add(time.Minute))
-
-				if err != nil {
-					utils.Err(err)
-					http.Error(w, "Error regenerating token", http.StatusInternalServerError)
-					return
-				}
-			}
-		}
-	}
-
-	data := fmt.Sprintf(
-		`{"token":"%s", "name":"%s", "id":"%s", "isGuest":%t, "isUser":%t }`,
-		token,
-		sess.User.Name,
-		sess.User.Id,
-		sess.User.IsGuest,
-		sess.User.IsUSer)
-
-	utils.Debug("%s", data)
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(data))
-	w.WriteHeader(http.StatusOK)
+	return sessionNew, token, nil
 }
 
 /**

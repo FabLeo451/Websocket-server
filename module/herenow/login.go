@@ -78,7 +78,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			DeviceType: credentials.DeviceType,
 			Ip:         r.RemoteAddr,
 		}
-		sessionId, err := auth.CreateSession(thisModule.Id, session, 0)
+		sessionNew, err := auth.CreateSession(thisModule.Id, session, 0)
 
 		if err != nil {
 			log.Println(err)
@@ -89,7 +89,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		// Create token
 
 		claims := auth.CustomClaims{
-			SessionId: sessionId,
+			SessionId: sessionNew.Id,
 			UserId:    user.Id,
 			Email:     credentials.Email,
 			Name:      user.Name,

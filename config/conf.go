@@ -60,7 +60,6 @@ func Port() int {
 
 	if os.Getenv("EKHOES_PORT") != "" {
 		port, _ = strconv.Atoi(os.Getenv("EKHOES_PORT"))
-
 	}
 
 	return port
@@ -83,7 +82,6 @@ func TTL_Session() int {
 
 	if os.Getenv("EKHOES_TTL_SESSION") != "" {
 		ttl, _ = strconv.Atoi(os.Getenv("EKHOES_TTL_SESSION"))
-
 	}
 
 	return ttl
@@ -94,7 +92,16 @@ func TTL_Token() int {
 
 	if os.Getenv("EKHOES_TTL_TOKEN") != "" {
 		ttl, _ = strconv.Atoi(os.Getenv("EKHOES_TTL_TOKEN"))
+	}
 
+	return ttl
+}
+
+func TTL_RefreshToken() int {
+	ttl := 30
+
+	if os.Getenv("EKHOES_TTL_REFRESH_TOKEN") != "" {
+		ttl, _ = strconv.Atoi(os.Getenv("EKHOES_TTL_REFRESH_TOKEN"))
 	}
 
 	return ttl
@@ -105,7 +112,6 @@ func TTL_EphemeralHotspots() int {
 
 	if os.Getenv("EKHOES_TTL_EPHEMERAL_HOTSPOTS") != "" {
 		ttl, _ = strconv.Atoi(os.Getenv("EKHOES_TTL_EPHEMERAL_HOTSPOTS"))
-
 	}
 
 	return ttl

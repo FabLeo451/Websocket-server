@@ -53,13 +53,15 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			DeviceType: credentials.DeviceType,
 			Ip:         r.RemoteAddr,
 		}
-		sessionId, err = auth.CreateSession(thisModule.Id, session, 0)
+		sessionNew, err := auth.CreateSession(thisModule.Id, session, 0)
 
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "Error creating session", http.StatusInternalServerError)
 			return
 		}
+
+		sessionId = sessionNew.Id
 	}
 
 	claims := auth.CustomClaims{
