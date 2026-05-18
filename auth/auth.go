@@ -22,21 +22,45 @@ type Credentials struct {
 
 func CheckAuthorization(r *http.Request) (jwt.MapClaims, error) {
 
-	token := r.Header.Get("Authorization")
+	authHeader := strings.TrimSpace(r.Header.Get("Authorization"))
 
-	//fmt.Printf("[createHotSpot] Authorization: %s\n", token)
+	if authHeader == "" {
+		return nil, errors.New("missing authorization header")
+	}
+
+	// expected format:
+	// Authorization: Bearer <token>
+
+	parts := strings.SplitN(authHeader, " ", 2)
+
+	if len(parts) != 2 {
+		return nil, errors.New("invalid authorization header format")
+	}
+
+	scheme := parts[0]
+	token := strings.TrimSpace(parts[1])
+
+	if !strings.EqualFold(scheme, "Bearer") {
+		return nil, errors.New("invalid authorization scheme")
+	}
 
 	if token == "" {
-		return nil, errors.New("missing Authorization header")
+		return nil, errors.New("missing bearer token")
 	}
 
 	claims, valid, err := DecodeJWT(token)
 
-	if err != nil || !valid {
-		return nil, errors.New("invalid token")
+	if err != nil {
+		return nil, err
 	}
 
-	if claims["userId"].(string) == "" {
+	if !valid {
+		return nil, errors.New("token expired")
+	}
+
+	userId, ok := claims["userId"].(string)
+
+	if !ok || userId == "" {
 		return nil, errors.New("missing user id in token")
 	}
 

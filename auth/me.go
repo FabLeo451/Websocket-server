@@ -7,10 +7,22 @@ import (
 )
 
 func MeHandler(w http.ResponseWriter, r *http.Request) {
+/*
+		dump, err := httputil.DumpRequest(r, true) // true = include il body
+		if err != nil {
+			fmt.Println("Errore DumpRequest:", err)
+			return
+		}
+
+		fmt.Println("===== HTTP REQUEST DUMP =====")
+		fmt.Println(string(dump))
+		fmt.Println("===== END REQUEST =====")
+*/
 
 	claims, err := CheckAuthorization(r)
 
 	if err != nil {
+		utils.Err(err)
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
