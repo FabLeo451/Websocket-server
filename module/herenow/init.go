@@ -44,7 +44,6 @@ func Init(r *chi.Mux) error {
 	root := fmt.Sprintf("/%s", thisModule.Id)
 
 	r.Route(root, func(r chi.Router) {
-		r.Post("/welcome", welcomeHandler)
 		r.Post("/login", Login)
 
 		r.Route("/hotspot", func(r chi.Router) {

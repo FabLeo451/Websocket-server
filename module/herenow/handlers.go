@@ -7,12 +7,9 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"ekhoes-server/auth"
-	"ekhoes-server/config"
 	"ekhoes-server/db"
-	"ekhoes-server/utils"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -29,54 +26,6 @@ func addCorsHeaders(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
-}
-
-func createGuestSession(credentials auth.Credentials, remoteAddr string) (auth.Session, string, error) {
-	utils.Debug("Creating guest session")
-
-	user := auth.User{
-		Id:      utils.UUID(),
-		Name:    "Guest",
-		IsGuest: true,
-		IsUSer:  false,
-	}
-
-	session := auth.Session{
-		User:       user,
-		Agent:      credentials.Agent,
-		Platform:   credentials.Platform,
-		Model:      credentials.Model,
-		DeviceName: credentials.DeviceName,
-		DeviceType: credentials.DeviceType,
-		Ip:         remoteAddr,
-	}
-
-	sessionNew, err := auth.CreateSession(thisModule.Id, session, time.Duration(config.TTL_Session())*time.Minute)
-
-	if err != nil {
-		return session, "", err
-	}
-
-	// Create token
-
-	claims := auth.CustomClaims{
-		SessionId: sessionNew.Id,
-		UserId:    user.Id,
-		Email:     credentials.Email,
-		Name:      user.Name,
-		IsUser:    false,
-		IsGuest:   true,
-	}
-
-	token, err := auth.GenerateJWT(claims, time.Now().Add(time.Duration(config.TTL_Token())*time.Minute))
-
-	if err != nil {
-		return sessionNew, "", err
-	}
-
-	utils.Debug("Session created: %s", sessionNew.Id)
-
-	return sessionNew, token, nil
 }
 
 /**

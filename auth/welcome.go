@@ -1,7 +1,6 @@
-package herenow
+package auth
 
 import (
-	"ekhoes-server/auth"
 	"ekhoes-server/config"
 	"ekhoes-server/db"
 	"ekhoes-server/utils"
@@ -13,7 +12,7 @@ import (
 	"time"
 )
 
-func welcomeHandler(w http.ResponseWriter, r *http.Request) {
+func WelcomeHandler(w http.ResponseWriter, r *http.Request) {
 	/*
 		dump, err := httputil.DumpRequest(r, true) // true = include il body
 		if err != nil {
@@ -29,16 +28,21 @@ func welcomeHandler(w http.ResponseWriter, r *http.Request) {
 	sessionId := ""
 	token := ""
 	refreshToken := ""
-	var sess auth.Session
+	var sess Session
 
 	// Get client info
 
-	var credentials auth.Credentials
+	var credentials Credentials
 
 	err := json.NewDecoder(r.Body).Decode(&credentials)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if credentials.AppId == "" {
+		http.Error(w, "Missing application id", http.StatusBadRequest)
 		return
 	}
 
@@ -53,7 +57,7 @@ func welcomeHandler(w http.ResponseWriter, r *http.Request) {
 		// Create guest session
 		utils.Debug("Client doesn't have a token")
 
-		sess, token, err = createGuestSession(credentials, r.RemoteAddr)
+		sess, token, err = CreateGuestSession(credentials.AppId, credentials, r.RemoteAddr)
 
 		if err != nil {
 			log.Println(err)
@@ -74,7 +78,7 @@ func welcomeHandler(w http.ResponseWriter, r *http.Request) {
 
 		utils.Debug("Decoding token")
 
-		claims, valid, err := auth.DecodeJWT(token)
+		claims, valid, err := DecodeJWT(token)
 
 		if err != nil {
 			utils.Err(err)
@@ -88,9 +92,9 @@ func welcomeHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Retrieve session
 
-		sess, err = auth.GetSession(sessionId)
+		sess, err = GetSession(sessionId)
 
-		if err == auth.SessionNotFound {
+		if err == SessionNotFound {
 			utils.Error("Session not found")
 			http.Error(w, "Session not found", http.StatusUnauthorized)
 			return
@@ -114,7 +118,7 @@ func welcomeHandler(w http.ResponseWriter, r *http.Request) {
 
 					utils.Debug("Regenerating token...")
 
-					newClaims := auth.CustomClaims{
+					newClaims := CustomClaims{
 						SessionId: sessionId,
 						UserId:    sess.User.Id,
 						Email:     credentials.Email,
@@ -123,7 +127,7 @@ func welcomeHandler(w http.ResponseWriter, r *http.Request) {
 						IsGuest:   sess.User.IsGuest,
 					}
 
-					token, err = auth.GenerateJWT(newClaims, time.Now().Add(time.Minute))
+					token, err = GenerateJWT(newClaims, time.Now().Add(time.Minute))
 
 					if err != nil {
 						utils.Err(err)

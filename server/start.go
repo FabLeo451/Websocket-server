@@ -70,6 +70,7 @@ func Start() int {
 	r.Use(DynamicCORSMiddleware)
 
 	r.Get("/", GetRoot)
+	r.Post("/welcome", auth.WelcomeHandler)
 	r.Get("/me", auth.MeHandler)
 	r.Post("/logout", auth.Logout)
 

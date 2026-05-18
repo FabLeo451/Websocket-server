@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"ekhoes-server/config"
 	"ekhoes-server/db"
 	"ekhoes-server/utils"
 	"encoding/json"
@@ -163,4 +164,52 @@ func GetSession(id string) (Session, error) {
 	sess.TTL = db.GetTTL(id)
 
 	return sess, err
+}
+
+func CreateGuestSession(moduleId string, credentials Credentials, remoteAddr string) (Session, string, error) {
+	utils.Debug("Creating guest session")
+
+	user := User{
+		Id:      utils.UUID(),
+		Name:    "Guest",
+		IsGuest: true,
+		IsUSer:  false,
+	}
+
+	session := Session{
+		User:       user,
+		Agent:      credentials.Agent,
+		Platform:   credentials.Platform,
+		Model:      credentials.Model,
+		DeviceName: credentials.DeviceName,
+		DeviceType: credentials.DeviceType,
+		Ip:         remoteAddr,
+	}
+
+	sessionNew, err := CreateSession(moduleId, session, time.Duration(config.TTL_Session())*time.Minute)
+
+	if err != nil {
+		return session, "", err
+	}
+
+	// Create token
+
+	claims := CustomClaims{
+		SessionId: sessionNew.Id,
+		UserId:    user.Id,
+		Email:     credentials.Email,
+		Name:      user.Name,
+		IsUser:    false,
+		IsGuest:   true,
+	}
+
+	token, err := GenerateJWT(claims, time.Now().Add(time.Duration(config.TTL_Token())*time.Minute))
+
+	if err != nil {
+		return sessionNew, "", err
+	}
+
+	utils.Debug("Session created: %s", sessionNew.Id)
+
+	return sessionNew, token, nil
 }
