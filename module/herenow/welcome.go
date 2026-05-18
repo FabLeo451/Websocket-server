@@ -136,11 +136,10 @@ func welcomeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := fmt.Sprintf(
-		`{"token":"%s", "refreshToken":"%s", "name":"%s", "id":"%s", "isGuest":%t, "isUser":%t }`,
+		`{"token":"%s", "refreshToken":"%s", "name":"%s", "isGuest":%t, "isUser":%t }`,
 		token,
 		refreshToken,
 		sess.User.Name,
-		sess.User.Id,
 		sess.User.IsGuest,
 		sess.User.IsUSer)
 
