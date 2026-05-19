@@ -71,6 +71,7 @@ func Start() int {
 
 	r.Get("/", GetRoot)
 	r.Post("/welcome", auth.WelcomeHandler)
+	r.Post("/refresh", auth.RefreshHandler)
 	r.Get("/me", auth.MeHandler)
 	r.Post("/logout", auth.Logout)
 

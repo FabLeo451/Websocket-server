@@ -28,7 +28,7 @@ func WelcomeHandler(w http.ResponseWriter, r *http.Request) {
 	sessionId := ""
 	token := ""
 	refreshToken := ""
-	var sess Session
+	var session Session
 
 	// Get client info
 
@@ -55,9 +55,10 @@ func WelcomeHandler(w http.ResponseWriter, r *http.Request) {
 
 	if token == "" {
 		// Create guest session
+
 		utils.Debug("Client doesn't have a token")
 
-		sess, token, err = CreateGuestSession(credentials.AppId, credentials, r.RemoteAddr)
+		session, err = CreateGuestSession(credentials.AppId, credentials, r.RemoteAddr)
 
 		if err != nil {
 			log.Println(err)
@@ -65,12 +66,22 @@ func WelcomeHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		refreshToken = "rt_" + utils.RandomId()
+		// Create access token
 
-		err = db.SetWithTTL(refreshToken, []byte(sess.Id), time.Duration(config.TTL_RefreshToken())*time.Minute)
+		token, err = generateAccessTokenFromSession(session)
 
 		if err != nil {
-			utils.Err(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// Create refresh token
+
+		refreshToken, err = generateRefreshToken(session)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 
 	} else {
@@ -92,7 +103,7 @@ func WelcomeHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Retrieve session
 
-		sess, err = GetSession(sessionId)
+		session, err = GetSession(sessionId)
 
 		if err == SessionNotFound {
 			utils.Error("Session not found")
@@ -143,9 +154,9 @@ func WelcomeHandler(w http.ResponseWriter, r *http.Request) {
 		`{"token":"%s", "refreshToken":"%s", "name":"%s", "isGuest":%t, "isUser":%t }`,
 		token,
 		refreshToken,
-		sess.User.Name,
-		sess.User.IsGuest,
-		sess.User.IsUSer)
+		session.User.Name,
+		session.User.IsGuest,
+		session.User.IsUSer)
 
 	utils.Debug("%s", data)
 

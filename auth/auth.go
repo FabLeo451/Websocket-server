@@ -1,9 +1,13 @@
 package auth
 
 import (
+	"ekhoes-server/config"
+	"ekhoes-server/db"
+	"ekhoes-server/utils"
 	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -79,4 +83,52 @@ func contains(csv string, target string) bool {
 
 func HasPrivilege(privileges string, target string) bool {
 	return contains(privileges, target) || contains(privileges, "ek_admin")
+}
+
+func generateAccessTokenFromSession(session Session) (string, error) {
+	claims := CustomClaims{
+		SessionId: session.Id,
+		UserId:    session.User.Id,
+		Email:     session.User.Email,
+		Name:      session.User.Name,
+		IsUser:    session.User.IsUSer,
+		IsGuest:   session.User.IsUSer,
+	}
+
+	token, err := GenerateJWT(claims, time.Now().Add(time.Duration(config.TTL_Token())*time.Minute))
+
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
+}
+
+func generateRefreshToken(session Session) (string, error) {
+
+	refreshToken := "rt_" + utils.RandomId()
+
+	err := db.SetWithTTL(refreshToken, []byte(session.Id), time.Duration(config.TTL_RefreshToken())*time.Minute)
+
+	if err != nil {
+		return "", err
+	}
+
+	return refreshToken, nil
+}
+
+func rotateRefreshToken(oldToken string, session Session) (string, error) {
+	_, err := db.DeleteKey(oldToken)
+
+	if err != nil {
+		return "", err
+	}
+
+	refreshToken, err := generateRefreshToken(session)
+
+	if err != nil {
+		return "", err
+	}
+
+	return refreshToken, nil
 }
