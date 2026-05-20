@@ -90,9 +90,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 		claims := auth.CustomClaims{
 			SessionId: sessionNew.Id,
-			UserId:    user.Id,
-			Email:     credentials.Email,
-			Name:      user.Name,
 			IsUser:    true,
 			IsGuest:   false,
 		}

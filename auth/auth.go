@@ -62,11 +62,13 @@ func CheckAuthorization(r *http.Request) (jwt.MapClaims, error) {
 		return nil, errors.New("token expired")
 	}
 
-	userId, ok := claims["userId"].(string)
+	/*
+		userId, ok := claims["userId"].(string)
 
-	if !ok || userId == "" {
-		return nil, errors.New("missing user id in token")
-	}
+		if !ok || userId == "" {
+			return nil, errors.New("missing user id in token")
+		}
+	*/
 
 	return claims, nil
 }
@@ -88,9 +90,6 @@ func HasPrivilege(privileges string, target string) bool {
 func generateAccessTokenFromSession(session Session) (string, error) {
 	claims := CustomClaims{
 		SessionId: session.Id,
-		UserId:    session.User.Id,
-		Email:     session.User.Email,
-		Name:      session.User.Name,
 		IsUser:    session.User.IsUSer,
 		IsGuest:   session.User.IsUSer,
 	}
