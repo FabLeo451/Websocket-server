@@ -11,9 +11,6 @@ import (
 
 type CustomClaims struct {
 	SessionId  string `json:"sessionId"`
-	UserId     string `json:"userId"`
-	Email      string `json:"email"`
-	Name       string `json:"name"`
 	IsUser     bool   `json:"isUser"`
 	IsGuest    bool   `json:"isGuest"`
 	Roles      string `json:"roles"`
