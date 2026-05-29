@@ -2,7 +2,9 @@ package auth
 
 import (
 	"ekhoes-server/db"
+	"ekhoes-server/session"
 	"encoding/json"
+	"errors"
 	"net/http"
 )
 
@@ -35,9 +37,9 @@ func RefreshHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Get session
 
-	session, err := GetSession(sessionId)
+	ses, err := session.Get(sessionId)
 
-	if err == SessionNotFound {
+	if errors.Is(err, session.SessionNotFound) {
 		http.Error(w, "Session not found", http.StatusUnauthorized)
 		return
 	} else if err != nil {
@@ -47,7 +49,7 @@ func RefreshHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Generate access token
 
-	data.AccessToken, err = generateAccessTokenFromSession(session)
+	data.AccessToken, err = generateAccessTokenFromSession(ses)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -56,7 +58,7 @@ func RefreshHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Rotate refresh token
 
-	data.RefreshToken, err = rotateRefreshToken(data.RefreshToken, session)
+	data.RefreshToken, err = rotateRefreshToken(data.RefreshToken, ses)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

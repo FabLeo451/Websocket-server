@@ -10,6 +10,7 @@ import (
 	"ekhoes-server/auth"
 	"ekhoes-server/common"
 	"ekhoes-server/module"
+	"ekhoes-server/session"
 	"ekhoes-server/utils"
 
 	//"websocket-server/herenow"
@@ -85,7 +86,7 @@ func HandleConnection(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sess, found := auth.SetSessionActive(wsConn.SessionId, true)
+	sess, found := session.SetActive(wsConn.SessionId, true)
 
 	if !found {
 		utils.Error("Session not found in websocket connection handler: %s\n", wsConn.SessionId)

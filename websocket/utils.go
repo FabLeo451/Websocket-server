@@ -1,7 +1,7 @@
 package websocket
 
 import (
-	"ekhoes-server/auth"
+	"ekhoes-server/session"
 	"ekhoes-server/utils"
 	"sync"
 	"time"
@@ -94,7 +94,7 @@ func GetWebsocketConnection(sessionId, connectionId string) *WebsocketConnection
 func onDisconnect(wsConn *WebsocketConnection) {
 	RemoveConnection(wsConn.SessionId, wsConn.ConnectionId)
 	wsConn.Conn.Close()
-	auth.SetSessionActive(wsConn.SessionId, false)
+	session.SetActive(wsConn.SessionId, false)
 }
 
 func disconnect(wsConn *WebsocketConnection) {
