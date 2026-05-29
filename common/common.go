@@ -1,7 +1,7 @@
 package common
 
 import (
-	"ekhoes-server/auth"
+	"ekhoes-server/session"
 	"encoding/json"
 
 	"github.com/go-chi/chi/v5"
@@ -13,7 +13,7 @@ type Module struct {
 	InitFunc    func(*chi.Mux) error
 	Install     func() error
 	PostInstall func(...interface{}) error
-	WsHandler   func(auth.User, Message, *Message) error
+	WsHandler   func(session.User, Message, *Message) error
 }
 
 type Message struct {

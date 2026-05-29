@@ -1,8 +1,8 @@
 package herenow
 
 import (
-	"ekhoes-server/auth"
 	"ekhoes-server/common"
+	"ekhoes-server/session"
 	"ekhoes-server/utils"
 	"encoding/json"
 	"errors"
@@ -14,7 +14,7 @@ type Query struct {
 	Boundaries Boundaries `json:"boundaries"`
 }
 
-func WsHandler(user auth.User, in common.Message, out *common.Message) error {
+func WsHandler(user session.User, in common.Message, out *common.Message) error {
 
 	utils.Debug("Received message of type '%s': %s\n", in.Type, in.Payload)
 

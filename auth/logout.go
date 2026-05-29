@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"ekhoes-server/session"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -48,7 +49,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Deleting session: %s\n", sessionId)
 
 	if sessionId != "" {
-		Delete(sessionId)
+		session.Delete(sessionId)
 	}
 
 	w.WriteHeader(http.StatusOK)

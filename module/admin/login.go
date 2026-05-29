@@ -2,6 +2,7 @@ package admin
 
 import (
 	"ekhoes-server/auth"
+	"ekhoes-server/session"
 	"ekhoes-server/utils"
 	"encoding/json"
 	"fmt"
@@ -44,7 +45,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	sessionId := ""
 
 	if !nosession {
-		session := auth.Session{
+		ses := session.Session{
 			User:       authRes.User,
 			Agent:      credentials.Agent,
 			Platform:   credentials.Platform,
@@ -53,7 +54,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			DeviceType: credentials.DeviceType,
 			Ip:         r.RemoteAddr,
 		}
-		sessionNew, err := auth.CreateSession(thisModule.Id, session, 0)
+		sessionNew, err := session.Create(thisModule.Id, ses, 0)
 
 		if err != nil {
 			log.Println(err)

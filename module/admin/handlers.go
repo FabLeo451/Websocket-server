@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"ekhoes-server/auth"
+	"ekhoes-server/session"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -27,7 +28,7 @@ func GetSessionsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessions, err := auth.GetSessions()
+	sessions, err := session.GetAll()
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -58,7 +59,7 @@ func DeleteSessionHandler(w http.ResponseWriter, r *http.Request) {
 
 	sessionId := chi.URLParam(r, "id")
 
-	err = auth.Delete(sessionId)
+	err = session.Delete(sessionId)
 
 	if err == nil {
 		log.Printf("Session deleted: %s\n", sessionId)
@@ -85,7 +86,7 @@ func DeleteAllSessionsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = auth.DeleteAllSessions()
+	err = session.DeleteAll()
 
 	if err != nil {
 		log.Println(err.Error())

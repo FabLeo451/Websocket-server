@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"ekhoes-server/auth"
 	"ekhoes-server/db"
+	"ekhoes-server/session"
 	"ekhoes-server/utils"
 	"encoding/json"
 	"errors"
@@ -20,7 +21,7 @@ import (
 func Login(w http.ResponseWriter, r *http.Request) {
 	var (
 		credentials    auth.Credentials
-		user           auth.User
+		user           session.User
 		password_match bool = false
 	)
 
@@ -69,7 +70,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 		user.Email = credentials.Email
 
-		session := auth.Session{
+		ses := session.Session{
 			User:       user,
 			Agent:      credentials.Agent,
 			Platform:   credentials.Platform,
@@ -78,7 +79,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			DeviceType: credentials.DeviceType,
 			Ip:         r.RemoteAddr,
 		}
-		sessionNew, err := auth.CreateSession(thisModule.Id, session, 0)
+		sessionNew, err := session.Create(thisModule.Id, ses, 0)
 
 		if err != nil {
 			log.Println(err)

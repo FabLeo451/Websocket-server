@@ -3,6 +3,7 @@ package auth
 import (
 	"ekhoes-server/config"
 	"ekhoes-server/db"
+	"ekhoes-server/session"
 	"ekhoes-server/utils"
 	"errors"
 	"net/http"
@@ -87,7 +88,7 @@ func HasPrivilege(privileges string, target string) bool {
 	return contains(privileges, target) || contains(privileges, "ek_admin")
 }
 
-func generateAccessTokenFromSession(session Session) (string, error) {
+func generateAccessTokenFromSession(session session.Session) (string, error) {
 	claims := CustomClaims{
 		SessionId: session.Id,
 		IsUser:    session.User.IsUSer,
@@ -103,7 +104,7 @@ func generateAccessTokenFromSession(session Session) (string, error) {
 	return token, nil
 }
 
-func generateRefreshToken(session Session) (string, error) {
+func generateRefreshToken(session session.Session) (string, error) {
 
 	refreshToken := "rt_" + utils.RandomId()
 
@@ -116,7 +117,7 @@ func generateRefreshToken(session Session) (string, error) {
 	return refreshToken, nil
 }
 
-func rotateRefreshToken(oldToken string, session Session) (string, error) {
+func rotateRefreshToken(oldToken string, session session.Session) (string, error) {
 	_, err := db.DeleteKey(oldToken)
 
 	if err != nil {

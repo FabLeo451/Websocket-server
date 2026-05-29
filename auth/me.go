@@ -1,8 +1,10 @@
 package auth
 
 import (
+	"ekhoes-server/session"
 	"ekhoes-server/utils"
 	"encoding/json"
+	"errors"
 	"net/http"
 )
 
@@ -21,9 +23,9 @@ func MeHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Retrieve session
 
-	session, err := GetSession(sessionId)
+	ses, err := session.Get(sessionId)
 
-	if err == SessionNotFound {
+	if errors.Is(err, session.SessionNotFound) {
 		http.Error(w, "Session not found", http.StatusUnauthorized)
 		return
 	} else if err != nil {
@@ -33,5 +35,5 @@ func MeHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(session.User)
+	json.NewEncoder(w).Encode(ses.User)
 }

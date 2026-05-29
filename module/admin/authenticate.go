@@ -4,14 +4,14 @@ import (
 	"database/sql"
 	"errors"
 
-	"ekhoes-server/auth"
 	"ekhoes-server/db"
+	"ekhoes-server/session"
 )
 
 type AuthResult struct {
-	Success bool      `json:"success"`
-	Message string    `json:"message"`
-	User    auth.User `json:"user"`
+	Success bool         `json:"success"`
+	Message string       `json:"message"`
+	User    session.User `json:"user"`
 }
 
 /**

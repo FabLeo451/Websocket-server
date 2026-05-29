@@ -3,14 +3,47 @@ package auth
 import (
 	"ekhoes-server/config"
 	"ekhoes-server/db"
+	"ekhoes-server/session"
 	"ekhoes-server/utils"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"strings"
 	"time"
 )
+
+func createGuestSession(moduleId string, credentials Credentials, remoteAddr string) (session.Session, error) {
+	utils.Debug("Creating guest session")
+
+	user := session.User{
+		Id:      utils.UUID(),
+		Name:    "Guest",
+		IsGuest: true,
+		IsUSer:  false,
+	}
+
+	ses := session.Session{
+		User:       user,
+		Agent:      credentials.Agent,
+		Platform:   credentials.Platform,
+		Model:      credentials.Model,
+		DeviceName: credentials.DeviceName,
+		DeviceType: credentials.DeviceType,
+		Ip:         remoteAddr,
+	}
+
+	sessionNew, err := session.Create(moduleId, ses, time.Duration(config.TTL_Session())*time.Minute)
+
+	if err != nil {
+		return ses, err
+	}
+
+	utils.Debug("Session created: %s", sessionNew.Id)
+
+	return sessionNew, nil
+}
 
 func WelcomeHandler(w http.ResponseWriter, r *http.Request) {
 	/*
@@ -28,7 +61,7 @@ func WelcomeHandler(w http.ResponseWriter, r *http.Request) {
 	sessionId := ""
 	token := ""
 	refreshToken := ""
-	var session Session
+	var ses session.Session
 
 	// Get client info
 
@@ -58,7 +91,7 @@ func WelcomeHandler(w http.ResponseWriter, r *http.Request) {
 
 		utils.Debug("Client doesn't have a token")
 
-		session, err = CreateGuestSession(credentials.AppId, credentials, r.RemoteAddr)
+		ses, err = createGuestSession(credentials.AppId, credentials, r.RemoteAddr)
 
 		if err != nil {
 			log.Println(err)
@@ -68,7 +101,7 @@ func WelcomeHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Create access token
 
-		token, err = generateAccessTokenFromSession(session)
+		token, err = generateAccessTokenFromSession(ses)
 
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -77,7 +110,7 @@ func WelcomeHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Create refresh token
 
-		refreshToken, err = generateRefreshToken(session)
+		refreshToken, err = generateRefreshToken(ses)
 
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -103,9 +136,9 @@ func WelcomeHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Retrieve session
 
-		session, err = GetSession(sessionId)
+		ses, err = session.Get(sessionId)
 
-		if err == SessionNotFound {
+		if errors.Is(err, session.SessionNotFound) {
 			utils.Error("Session not found")
 			http.Error(w, "Session not found", http.StatusUnauthorized)
 			return
@@ -154,9 +187,9 @@ func WelcomeHandler(w http.ResponseWriter, r *http.Request) {
 		`{"token":"%s", "refreshToken":"%s", "name":"%s", "isGuest":%t, "isUser":%t }`,
 		token,
 		refreshToken,
-		session.User.Name,
-		session.User.IsGuest,
-		session.User.IsUSer)
+		ses.User.Name,
+		ses.User.IsGuest,
+		ses.User.IsUSer)
 
 	utils.Debug("%s", data)
 
