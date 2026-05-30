@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"ekhoes-server/db"
+	"ekhoes-server/cache"
 	"ekhoes-server/session"
 	"encoding/json"
 	"errors"
@@ -25,9 +25,9 @@ func RefreshHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Check refresh token exists
 
-	sessionId, err := db.Get(data.RefreshToken)
+	sessionId, err := cache.Get(data.RefreshToken)
 
-	if err == db.KeyNotFound {
+	if err == cache.KeyNotFound {
 		http.Error(w, "Invalid refresh token", http.StatusUnauthorized)
 		return
 	} else if err != nil {

@@ -1,8 +1,8 @@
 package auth
 
 import (
+	"ekhoes-server/cache"
 	"ekhoes-server/config"
-	"ekhoes-server/db"
 	"ekhoes-server/session"
 	"ekhoes-server/utils"
 	"encoding/json"
@@ -154,7 +154,7 @@ func WelcomeHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			utils.Debug("Session found. Extending TTL...")
 
-			db.UpdateTTL(sessionId, time.Duration(config.TTL_Session())*time.Minute)
+			cache.UpdateTTL(sessionId, time.Duration(config.TTL_Session())*time.Minute)
 
 			/*
 				if !valid {

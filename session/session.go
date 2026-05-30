@@ -1,7 +1,7 @@
 package session
 
 import (
-	"ekhoes-server/db"
+	"ekhoes-server/cache"
 	"encoding/json"
 	"errors"
 	"time"
@@ -39,7 +39,7 @@ var SessionNotFound = errors.New("session not found")
 func SetActive(sessionId string, active bool) (Session, bool) {
 	var session Session
 
-	sessionStr, err := db.Get(sessionId)
+	sessionStr, err := cache.Get(sessionId)
 	if err != nil {
 		return session, false
 	}
@@ -62,7 +62,7 @@ func SetActive(sessionId string, active bool) (Session, bool) {
 		panic(err)
 	}
 
-	err = db.Update(sessionId, modifiedJSON)
+	err = cache.Update(sessionId, modifiedJSON)
 
 	if err != nil {
 		log.Fatalf("Error updating: %v", err)

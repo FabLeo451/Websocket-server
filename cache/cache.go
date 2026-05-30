@@ -1,4 +1,4 @@
-package db
+package cache
 
 import (
 	"context"
@@ -21,7 +21,7 @@ var (
 	KeyNotFound = errors.New("not found")
 )
 
-func OpenCache() error {
+func Open() error {
 	if config.RedisEnabled() {
 
 		log.Printf("Connecting to Redis %s:%s...\n", os.Getenv("EKHOES_REDIS_HOST"), os.Getenv("EKHOES_REDIS_PORT"))
@@ -67,6 +67,12 @@ func OpenCache() error {
 	}
 
 	return nil
+}
+
+func Close() {
+	if RedisGetConnection() != nil {
+		RedisGetConnection().Close()
+	}
 }
 
 func SetWithTTL(key string, value interface{}, ttl time.Duration) error {

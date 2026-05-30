@@ -12,6 +12,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"ekhoes-server/cache"
 	"ekhoes-server/config"
 	"ekhoes-server/db"
 	"ekhoes-server/utils"
@@ -276,7 +277,7 @@ func createEphemeralHotspot(hotspot Hotspot) (*Hotspot, error) {
 		panic(err)
 	}
 
-	db.SetWithTTL(key, dataStr, time.Duration(config.TTL_EphemeralHotspots())*time.Minute)
+	cache.SetWithTTL(key, dataStr, time.Duration(config.TTL_EphemeralHotspots())*time.Minute)
 
 	return &hotspot, nil
 }
@@ -286,14 +287,14 @@ func getEphemeralHotspots() []Hotspot {
 
 	keyStart := fmt.Sprintf("app:%s:hotspot:*", thisModule.Id)
 
-	keys, err := db.GetKeysByPattern(keyStart)
+	keys, err := cache.GetKeysByPattern(keyStart)
 	if err != nil {
 		utils.Err(err)
 		return hotspots
 	}
 
 	for _, key := range keys {
-		val, err := db.Get(key)
+		val, err := cache.Get(key)
 		if err != nil {
 			utils.Error("Error reading key %s: %v", key, err)
 			continue

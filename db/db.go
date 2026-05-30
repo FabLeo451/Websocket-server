@@ -32,29 +32,10 @@ func init() {
 	DbSqlFS = sub
 }
 
-/*
-// Exported custom init
+func IsOpen() bool {
+	return _connection != nil
+}
 
-	func Init(module string) error {
-		log.Printf("Initializing database (%s)...", config.Runtime.Database)
-
-		script, err := LoadSQL("init.sql")
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		//fmt.Println(script)
-
-		_, err = DB_GetConnection().Exec(script)
-
-		if err != nil {
-			return err
-		}
-
-		return nil
-	}
-*/
 func LoadSQL(SqlFS fs.FS, filename string) (string, error) {
 	folder := "postgres"
 	if config.Local() {
@@ -139,49 +120,6 @@ func OpenDatabase() error {
 	return nil
 }
 
-func OpenStaff(app string) error {
-	err := OpenDatabase()
-
-	if err != nil {
-		return err
-	}
-
-	err = OpenCache()
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func CloseStuff() {
-
-	if _connection != nil {
-		log.Println("Closing database connection...")
-		Close(_connection)
-	}
-
-	if config.RedisEnabled() {
-		log.Println("Closing Redis connection...")
-		RedisClose()
-	}
-}
-
-/*
-	func OpenAndInit(app string) error {
-		err := OpenStaff(app)
-
-		if err != nil {
-			return err
-		}
-
-		err = Init(app)
-
-		return err
-	}
-*/
-
 func CheckDatabaseExists() (bool, error) {
 	exists := false
 
@@ -227,19 +165,3 @@ func CreateDatabase() error {
 
 	return nil
 }
-
-/*
-func CreateUser(id string, name string, email string, password string, status string, role string) error {
-	err := ExecuteSQL("create_user.sql", id, name, email, password, status)
-
-	if err == nil {
-		return ExecuteSQL("add_role.sql", id, role)
-	}
-
-	return nil
-}
-
-func CreateAdmin(email string) error {
-	return CreateUser("1000", "Administrator", email, "admin", "enabled", "ADMIN")
-}
-*/

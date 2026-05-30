@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"ekhoes-server/auth"
+	"ekhoes-server/cache"
 	"ekhoes-server/config"
 	"ekhoes-server/db"
 	"ekhoes-server/module"
@@ -58,7 +59,7 @@ func Start() int {
 		"Postgres", config.PosgresEnabled(),
 		"Redis", config.RedisEnabled())
 
-	err := db.OpenStaff("")
+	err := openStaff()
 
 	if err != nil {
 		log.Fatal(err)
@@ -149,9 +150,38 @@ func Start() int {
 
 	websocket.DisconnectAll()
 
-	db.CloseStuff()
+	closeStuff()
 
 	log.Println("Server stopped")
 
 	return 0
+}
+
+func openStaff() error {
+	err := db.OpenDatabase()
+
+	if err != nil {
+		return err
+	}
+
+	err = cache.Open()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func closeStuff() {
+
+	if db.IsOpen() {
+		log.Println("Closing database connection...")
+		db.CloseDatabase()
+	}
+
+	if config.RedisEnabled() {
+		log.Println("Closing Redis connection...")
+		cache.Close()
+	}
 }
