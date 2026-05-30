@@ -1,8 +1,8 @@
 package auth
 
 import (
+	"ekhoes-server/cache"
 	"ekhoes-server/config"
-	"ekhoes-server/db"
 	"ekhoes-server/session"
 	"ekhoes-server/utils"
 	"errors"
@@ -108,7 +108,7 @@ func generateRefreshToken(session session.Session) (string, error) {
 
 	refreshToken := "rt_" + utils.RandomId()
 
-	err := db.SetWithTTL(refreshToken, []byte(session.Id), time.Duration(config.TTL_RefreshToken())*time.Minute)
+	err := cache.SetWithTTL(refreshToken, []byte(session.Id), time.Duration(config.TTL_RefreshToken())*time.Minute)
 
 	if err != nil {
 		return "", err
@@ -118,7 +118,7 @@ func generateRefreshToken(session session.Session) (string, error) {
 }
 
 func rotateRefreshToken(oldToken string, session session.Session) (string, error) {
-	_, err := db.DeleteKey(oldToken)
+	_, err := cache.DeleteKey(oldToken)
 
 	if err != nil {
 		return "", err

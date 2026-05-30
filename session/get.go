@@ -1,23 +1,23 @@
 package session
 
 import (
-	"ekhoes-server/db"
+	"ekhoes-server/cache"
 	"encoding/json"
 	"log"
 )
 
 func Get(id string) (Session, error) {
-	val, err := db.Get(id)
+	val, err := cache.Get(id)
 
 	var sess Session
 
-	if err == db.KeyNotFound {
+	if err == cache.KeyNotFound {
 		return sess, SessionNotFound
 	}
 
 	err = json.Unmarshal([]byte(val), &sess)
 
-	sess.TTL = db.GetTTL(id)
+	sess.TTL = cache.GetTTL(id)
 
 	return sess, err
 }
@@ -25,13 +25,13 @@ func Get(id string) (Session, error) {
 func GetAll() ([]Session, error) {
 	var sessions []Session
 
-	keys, err := db.GetKeysByPattern("ses:*")
+	keys, err := cache.GetKeysByPattern("ses:*")
 	if err != nil {
 		return nil, err
 	}
 
 	for _, key := range keys {
-		val, err := db.Get(key)
+		val, err := cache.Get(key)
 		if err != nil {
 			log.Printf("Errore nel leggere chiave %s: %v", key, err)
 			continue
@@ -44,7 +44,7 @@ func GetAll() ([]Session, error) {
 		}
 
 		sess.Id = key
-		sess.TTL = db.GetTTL(key)
+		sess.TTL = cache.GetTTL(key)
 
 		sessions = append(sessions, sess)
 	}

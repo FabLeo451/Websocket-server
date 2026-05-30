@@ -1,7 +1,7 @@
 package session
 
 import (
-	"ekhoes-server/db"
+	"ekhoes-server/cache"
 	"ekhoes-server/utils"
 	"encoding/json"
 	"fmt"
@@ -23,7 +23,7 @@ func Create(appId string, session Session, ttl time.Duration) (Session, error) {
 		return session, err
 	}
 
-	err = db.SetWithTTL(session.Id, data, ttl)
+	err = cache.SetWithTTL(session.Id, data, ttl)
 
 	if err != nil {
 		log.Fatalf("Error creating session: %v", err)

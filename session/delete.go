@@ -1,13 +1,13 @@
 package session
 
 import (
-	"ekhoes-server/db"
+	"ekhoes-server/cache"
 	"errors"
 	"fmt"
 )
 
 func Delete(sessionId string) error {
-	deleted, err := db.DeleteKey(sessionId)
+	deleted, err := cache.DeleteKey(sessionId)
 	if err != nil {
 		return fmt.Errorf("unable to remove key: %w", err)
 	}
@@ -21,7 +21,7 @@ func Delete(sessionId string) error {
 }
 
 func DeleteAll() error {
-	err := db.DeleteByPattern("*")
+	err := cache.DeleteByPattern("*")
 	if err != nil {
 		return fmt.Errorf("unable to remove key: %w", err)
 	}
